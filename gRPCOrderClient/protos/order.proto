@@ -1,0 +1,34 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package V1;
+
+service Order {
+
+	rpc GetOrder (OrderRequest) returns (OrderResponse);
+	rpc GetOrdersServerStream (google.protobuf.Empty) returns (stream OrderResponse);
+	rpc GetOrdersClientStream (stream OrderRequest) returns (stream OrderResponse);
+
+}
+
+
+message InventoryItem{ 
+	int32 Id = 1;
+	string Name = 2;
+}
+
+message OrderDetail{
+    int32 OrderId = 1;
+	InventoryItem Item = 2;
+	int32 Quantity = 3;
+}
+
+message OrderRequest{
+	int32 Id = 1;
+}
+
+message OrderResponse{
+	int32 Id = 1;
+	repeated OrderDetail Details = 2;
+}
