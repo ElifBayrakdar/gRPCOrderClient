@@ -8,10 +8,8 @@ service Order {
 
 	rpc GetOrder (OrderRequest) returns (OrderResponse);
 	rpc GetOrdersServerStream (google.protobuf.Empty) returns (stream OrderResponse);
-	rpc GetOrdersClientStream (stream OrderRequest) returns (stream OrderResponse);
-
+	rpc GetOrdersClientStream (stream OrderRequest) returns (OrderResponse);
 }
-
 
 message InventoryItem{ 
 	int32 Id = 1;
@@ -24,11 +22,15 @@ message OrderDetail{
 	int32 Quantity = 3;
 }
 
-message OrderRequest{
+message OrderItem{
 	int32 Id = 1;
+	repeated OrderDetail Details = 2;
 }
 
 message OrderResponse{
+	repeated OrderItem Orders = 1;
+}
+
+message OrderRequest{
 	int32 Id = 1;
-	repeated OrderDetail Details = 2;
 }
