@@ -21,14 +21,7 @@ namespace gRPCOrderClient
             OrderRequest req = new OrderRequest { Id = 0 };
             var reply = await client.GetOrderAsync(req);
 
-            foreach (var order in reply.Orders)
-            {
-                Console.WriteLine($"Order {order.Id}:");
-                foreach (var detail in order.Details)
-                {
-                    Console.WriteLine("Order Details: " + detail);
-                }
-            }
+            Print(reply);
 
 
 
@@ -41,15 +34,8 @@ namespace gRPCOrderClient
             {
                 await foreach (var response in callSrv.ResponseStream.ReadAllAsync(tokenSource.Token))
                 {
-                    //Console.WriteLine($"Order {n + 1}:");
-                    foreach (var order in response.Orders)
-                    {
-                        Console.WriteLine($"Order {order.Id}:");
-                        foreach (var detail in order.Details)
-                        {
-                            Console.WriteLine("Order Details: " + detail);
-                        }
-                    }
+                    Print(response);
+
                     if (++n == 3)
                     {
                         tokenSource.Cancel();
@@ -73,16 +59,9 @@ namespace gRPCOrderClient
                     await callClnt.RequestStream.WriteAsync(new OrderRequest { Id = i });
                 }
                 await callClnt.RequestStream.CompleteAsync();
-
                 var res = await callClnt;
-                foreach (var order in res.Orders)
-                {
-                    Console.WriteLine($"Order {order.Id}:");
-                    foreach (var detail in order.Details)
-                    {
-                        Console.WriteLine("Order Details: " + detail);
-                    }
-                }
+
+                Print(res);
             }
             catch (RpcException e) when (e.Status.StatusCode == StatusCode.DeadlineExceeded)
             {
@@ -91,6 +70,19 @@ namespace gRPCOrderClient
 
 
             Console.ReadKey();
+        }
+
+
+        private static void Print(OrderResponse response)
+        {
+            foreach (var order in response.Orders)
+            {
+                Console.WriteLine($"Order {order.Id}:");
+                foreach (var detail in order.Details)
+                {
+                    Console.WriteLine("Order Details: " + detail);
+                }
+            }
         }
     }
 }
