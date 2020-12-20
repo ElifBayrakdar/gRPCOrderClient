@@ -21,6 +21,15 @@ namespace gRPCOrderClient
             OrderRequest req = new OrderRequest { Id = 0 };
             var reply = await client.GetOrderAsync(req);
 
+            foreach (var order in reply.Orders)
+            {
+                Console.WriteLine($"Order {order.Id}:");
+                foreach (var detail in order.Details)
+                {
+                    Console.WriteLine("Order Details: " + detail);
+                }
+            }
+
 
 
             //Server Streaming gRPC Example
@@ -32,9 +41,10 @@ namespace gRPCOrderClient
             {
                 await foreach (var response in callSrv.ResponseStream.ReadAllAsync(tokenSource.Token))
                 {
-                    Console.WriteLine($"Order {n + 1}:");
+                    //Console.WriteLine($"Order {n + 1}:");
                     foreach (var order in response.Orders)
                     {
+                        Console.WriteLine($"Order {order.Id}:");
                         foreach (var detail in order.Details)
                         {
                             Console.WriteLine("Order Details: " + detail);
@@ -54,24 +64,31 @@ namespace gRPCOrderClient
 
 
             //Client Streaming gRPC Example
-            var c = 0;
-            using var callClnt = client.GetOrdersClientStream();
+            using var callClnt = client.GetOrdersClientStream(deadline: DateTime.UtcNow.AddSeconds(5));
 
-            for (var i = 1; i <= 3; i++)
+            try
             {
-                await callClnt.RequestStream.WriteAsync(new OrderRequest { Id = i });
-            }
-            await callClnt.RequestStream.CompleteAsync();
-
-            var res = await callClnt;
-            foreach (var order in res.Orders)
-            {
-                Console.WriteLine($"Order {c + 1}:");
-                foreach (var detail in order.Details)
+                for (var i = 1; i <= 4; i++)
                 {
-                    Console.WriteLine("Order Details: " + detail);
+                    await callClnt.RequestStream.WriteAsync(new OrderRequest { Id = i });
+                }
+                await callClnt.RequestStream.CompleteAsync();
+
+                var res = await callClnt;
+                foreach (var order in res.Orders)
+                {
+                    Console.WriteLine($"Order {order.Id}:");
+                    foreach (var detail in order.Details)
+                    {
+                        Console.WriteLine("Order Details: " + detail);
+                    }
                 }
             }
+            catch (RpcException e) when (e.Status.StatusCode == StatusCode.DeadlineExceeded)
+            {
+                Console.WriteLine("Deadline exceeded!");
+            }
+
 
             Console.ReadKey();
         }
