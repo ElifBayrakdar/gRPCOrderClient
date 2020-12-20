@@ -16,12 +16,14 @@ namespace gRPCOrderClient
             var client = new Order.OrderClient(channel);
 
 
+
             //Unary gRPC Example
             OrderRequest req = new OrderRequest { Id = 0 };
             var reply = await client.GetOrderAsync(req);
 
 
-            //Server streaming gRPC Example
+
+            //Server Streaming gRPC Example
             var tokenSource = new CancellationTokenSource();
             var n = 0;
             Empty request = new Empty();
@@ -47,6 +49,28 @@ namespace gRPCOrderClient
             catch (RpcException e) when (e.Status.StatusCode == StatusCode.Cancelled)
             {
                 Console.WriteLine("Streaming was cancelled from the client!");
+            }
+
+
+
+            //Client Streaming gRPC Example
+            var c = 0;
+            using var callClnt = client.GetOrdersClientStream();
+
+            for (var i = 1; i <= 3; i++)
+            {
+                await callClnt.RequestStream.WriteAsync(new OrderRequest { Id = i });
+            }
+            await callClnt.RequestStream.CompleteAsync();
+
+            var res = await callClnt;
+            foreach (var order in res.Orders)
+            {
+                Console.WriteLine($"Order {c + 1}:");
+                foreach (var detail in order.Details)
+                {
+                    Console.WriteLine("Order Details: " + detail);
+                }
             }
 
             Console.ReadKey();
