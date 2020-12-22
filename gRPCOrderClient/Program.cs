@@ -18,7 +18,7 @@ namespace gRPCOrderClient
 
 
             //Unary gRPC Example
-            OrderRequest req = new OrderRequest { Id = 0 };
+            OrderRequest req = new OrderRequest { Id = 1};
             var reply = await client.GetOrderAsync(req);
 
             Print(reply);
@@ -50,8 +50,7 @@ namespace gRPCOrderClient
 
 
             //Client Streaming gRPC Example
-            using var callClnt = client.GetOrdersClientStream(deadline: DateTime.UtcNow.AddSeconds(5));
-
+            using var callClnt = client.GetOrdersClientStream(deadline: DateTime.UtcNow.AddSeconds(10));
             try
             {
                 for (var i = 1; i <= 4; i++)
